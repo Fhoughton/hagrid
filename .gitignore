@@ -4,7 +4,9 @@ hagrid
 
 # Game Files
 potter01_extracted
+potter01_repackme
 out
 *.dir
 *.dat
 *.wad
+*.iso

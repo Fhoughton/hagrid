@@ -90,6 +90,18 @@ int datdir_filter(const struct dirent *name)
   return 1;
 }
 
+int roundUp(int numToRound, int multiple)
+{
+    if (multiple == 0)
+        return numToRound;
+
+    int remainder = numToRound % multiple;
+    if (remainder == 0)
+        return numToRound;
+
+    return numToRound + multiple - remainder;
+}
+
 void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir_file) {
     FILE *dir_fp, *dat_fp, *file_fp;
     char output_path[256];
@@ -126,6 +138,7 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
     fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
 
     uint32_t file_size;
+    uint32_t offset; // We calculate the running offset by adding the file sizes together
 
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
@@ -142,7 +155,10 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
             // Write index contents (name, size, offset)
             fwrite(&namelist[i]->d_name, sizeof(char), 12, dir_fp); // Need to pad file name later to not rely on zeroed data
             fwrite(&file_size, sizeof(uint32_t), 1, dir_fp);
-            
+            fwrite(&offset, sizeof(uint32_t), 1, dir_fp);
+
+            offset += roundUp(file_size, 2048);
+
             fclose(file_fp);
         }
         
