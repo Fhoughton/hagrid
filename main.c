@@ -90,7 +90,7 @@ typedef enum FileMode {
 } FileMode;
 
 void print_usage(char *argv[]) {
-    fprintf(stderr, "Usage: argv [-ep] [dat_file] [dir_file] [output_dir]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [-ep] [dat_file] [dir_file] [output_dir]\n", argv[0]);
 }
 
 int main(int argc, char *argv[]) {
@@ -108,9 +108,19 @@ int main(int argc, char *argv[]) {
     }
 
     // Check enough arguments were given
-    if ((argc - optind) < 3) {
-        print_usage(argv);
-        exit(EXIT_FAILURE);
+    switch (file_mode) {
+        case EXTRACT:
+            if ((argc - optind) < 3) {
+                print_usage(argv);
+                exit(EXIT_FAILURE);
+            }
+            datdir_extract(argv[optind], argv[optind+1], argv[optind+2]);
+            break;
+        case PACK:
+            printf("Pack!\n");
+            break;
+        default:
+            print_usage(argv);
+            exit(EXIT_FAILURE);
     }
-    datdir_extract(argv[optind], argv[optind+1], argv[optind+2]);
 }
