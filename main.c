@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 
 // Describes one file within a .dat/.dir relationship
 #pragma pack(push, 1) // Ensure there is no padding in the struct
@@ -84,6 +85,37 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
     fclose(dat_fp);
 }
 
+void datdir_repack(const char* dat_folder, const char* out_file_path) {
+    /* Reconstruct the .dir index */
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(dat_folder);
+    if (d) {
+        // Loop through the files and count them so we know how much memory to allocate in out arrays
+        uint32_t count = 0;
+        while ((dir = readdir(d)) != NULL) {
+            if (dir->d_type == DT_REG)
+            {
+                count++;
+            }
+        }
+        printf("%d files!\n", count);
+
+        // Read file names
+        while ((dir = readdir(d)) != NULL) {
+            if (dir->d_type == DT_REG)
+            {
+                printf("%s\n", dir->d_name);
+            }
+        }
+
+        // Close the directory when done extracting information
+        closedir(d);
+    }
+
+    /* Repack the .dat file using the generated index */
+}
+
 typedef enum FileMode {
     EXTRACT,
     PACK
@@ -117,7 +149,9 @@ int main(int argc, char *argv[]) {
             datdir_extract(argv[optind], argv[optind+1], argv[optind+2]);
             break;
         case PACK:
+            // hagrid -p <path> <filename_out>
             printf("Pack!\n");
+            datdir_repack(argv[optind], argv[optind+1]);
             break;
         default:
             print_usage(argv);
