@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
 // Describes one file within a .dat/.dir relationship
+#pragma pack(push, 1) // Ensure there is no padding in the struct
 typedef struct {
-    char filename[13]; // Maximum 12 characters and space for a null-terminator
-    unsigned int filesize; // How many bytes to read
-    unsigned int offset; // Where to read from in dat file
+    char filename[12]; // Maximum 11 characters and space for a null-terminator
+    uint32_t filesize; // How many bytes to read
+    uint32_t offset; // Where to read from in dat file
 } FileEntry;
+#pragma pack(pop)
 
 // Extracts a pair of .dat/.dir files
 void datdir_extract(const char* dat_file, const char* dir_file, const char* output_dir) {
@@ -23,7 +27,7 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
     }
 
     // Read the number of files
-    fread(&file_count, sizeof(int), 1, dir_fp);
+    fread(&file_count, sizeof(uint32_t), 1, dir_fp);
 
     // Open the .dat file for reading
     dat_fp = fopen(dat_file, "rb");
@@ -31,6 +35,18 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
         perror("Error opening .dat file");
         fclose(dir_fp);
         return;
+    }
+
+    // Extract each file in the index
+    for (int i = 0; i < file_count; i++) {
+        fread(&entry, sizeof(FileEntry), 1, dir_fp);
+
+        // Filenames lack null terminator so we add one for display
+        char filename[13];
+        strncpy(filename, entry.filename, 12);
+        filename[12] = '\0'; // Manually null-terminate
+
+        printf("Name: %s, Offset %d, Size: %d\n", filename, entry.offset, entry.filesize);
     }
 
     // Free memory and close files
