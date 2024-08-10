@@ -90,10 +90,14 @@ int datdir_filter(const struct dirent *name)
   return 1;
 }
 
-void datdir_repack(const char* dat_folder, const char* out_file_path) {
+void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir_file) {
+    FILE *dir_fp, *dat_fp;
+
     /* Reconstruct the .dir index */
     DIR *d;
     struct dirent **namelist;
+
+    uint32_t file_count = 0; // Have to count real files, since by default scandir includes folders, symlinks etc.
 
     uint32_t n = scandir(dat_folder, &namelist, datdir_filter, alphasort);
     if (n == -1) {
@@ -104,9 +108,25 @@ void datdir_repack(const char* dat_folder, const char* out_file_path) {
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
         if (namelist[i]->d_type == DT_REG) {
+            file_count++;
             printf("NAME: %s RECORD LENGTH: %d \n", namelist[i]->d_name, namelist[i]->d_reclen);
         }
     }
+
+    // Open the new .dir file
+    printf("Dir_file: %s\n", dir_file);
+    dir_fp = fopen(dir_file, "wb");
+    if (!dir_fp) {
+        perror("Error opening .dir file");
+        return;
+    }
+
+    // First write the bytes for the file count
+    fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
+    fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
+
+    fclose(dir_fp);
+
 
     // while (n--) {
     //     switch(namelist[n]->d_type)
@@ -163,7 +183,7 @@ int main(int argc, char *argv[]) {
         case PACK:
             // hagrid -p <path> <filename_out>
             printf("Pack!\n");
-            datdir_repack(argv[optind], argv[optind+1]);
+            datdir_repack(argv[optind], argv[optind+1], argv[optind+2]);
             break;
         default:
             print_usage(argv);
