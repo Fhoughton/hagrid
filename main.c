@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 
 // Describes one file within a .dat/.dir relationship
 #pragma pack(push, 1) // Ensure there is no padding in the struct
@@ -83,10 +84,33 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
     fclose(dat_fp);
 }
 
+typedef enum FileMode {
+    EXTRACT,
+    PACK
+} FileMode;
+
+void print_usage(char *argv[]) {
+    fprintf(stderr, "Usage: argv [-ep] [dat_file] [dir_file] [output_dir]\n", argv[0]);
+}
+
 int main(int argc, char *argv[]) {
-    if (argc < 4) {
-        printf("Usage: %s <dat_file> <dir_file> <output_dir>\n", argv[0]);
-        return 1;
+    FileMode file_mode = EXTRACT;
+    int opt;
+
+    while ((opt = getopt(argc, argv, "ep")) != -1) {
+        switch (opt) {
+        case 'e': file_mode = EXTRACT; break;
+        case 'p': file_mode = PACK; break;
+        default:
+            print_usage(argv);
+            exit(EXIT_FAILURE);
+        }
     }
-    datdir_extract(argv[1], argv[2], argv[3]);
+
+    // Check enough arguments were given
+    if ((argc - optind) < 3) {
+        print_usage(argv);
+        exit(EXIT_FAILURE);
+    }
+    datdir_extract(argv[optind], argv[optind+1], argv[optind+2]);
 }
