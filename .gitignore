@@ -1,0 +1,6 @@
+# Executables
+hagrid
+*.exe
+
+# Game Files
+potter01_extracted
