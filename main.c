@@ -91,7 +91,8 @@ int datdir_filter(const struct dirent *name)
 }
 
 void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir_file) {
-    FILE *dir_fp, *dat_fp;
+    FILE *dir_fp, *dat_fp, *file_fp;
+    char output_path[256];
 
     /* Reconstruct the .dir index */
     DIR *d;
@@ -123,7 +124,29 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
 
     // First write the bytes for the file count
     fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
-    fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
+
+    uint32_t file_size;
+
+    for (int i = 0; i < n; i++) {
+        // Ensure it's a real file, not symlink or folder
+        if (namelist[i]->d_type == DT_REG) {
+            // Read file and write correct bytes to dir file
+            snprintf(output_path, sizeof(output_path), "%s/%s", dat_folder, namelist[i]->d_name);
+
+            file_fp = fopen(output_path, "rb");
+            
+            fseek(file_fp, 0L, SEEK_END); // Skip to end to get size
+            file_size = ftell(file_fp);
+            fseek(file_fp, 0L, SEEK_SET); // Skip to start again
+
+            // Write index contents (name, size, offset)
+            fwrite(&namelist[i]->d_name, sizeof(char), 12, dir_fp); // Need to pad file name later to not rely on zeroed data
+            fwrite(&file_size, sizeof(uint32_t), 1, dir_fp);
+            
+            fclose(file_fp);
+        }
+        
+    }
 
     fclose(dir_fp);
 
