@@ -38,6 +38,8 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
     }
 
     // Extract each file in the index
+    uint8_t *buffer; // File data buffer
+
     for (int i = 0; i < file_count; i++) {
         fread(&entry, sizeof(FileEntry), 1, dir_fp);
 
@@ -46,7 +48,34 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
         strncpy(filename, entry.filename, 12);
         filename[12] = '\0'; // Manually null-terminate
 
-        printf("Name: %s, Offset %d, Size: %d\n", filename, entry.offset, entry.filesize);
+        // Allocate buffer for file data
+        buffer = (char*)malloc(entry.filesize);
+        if (!buffer) {
+            perror("Memory allocation failed");
+            fclose(dir_fp);
+            fclose(dat_fp);
+            return;
+        }
+
+        // Read the file data from the .dat file
+        fseek(dat_fp, entry.offset, SEEK_SET);
+        fread(buffer, entry.filesize, 1, dat_fp);
+
+        // Resolve the output file path
+        snprintf(output_path, sizeof(output_path), "%s/%s", output_dir, filename);
+
+        // Write the extracted file to the output directory
+        out_fp = fopen(output_path, "wb");
+        if (out_fp) {
+            fwrite(buffer, entry.filesize, 1, out_fp);
+            fclose(out_fp);
+            printf("Extracted %s (size: %u, offset: %u) to %s\n", filename, entry.filesize, entry.offset, output_path);
+        } else {
+            perror("Error creating output file");
+        }
+
+        // Free the buffer
+        free(buffer);
     }
 
     // Free memory and close files
@@ -59,6 +88,5 @@ int main(int argc, char *argv[]) {
         printf("Usage: %s <dat_file> <dir_file> <output_dir>\n", argv[0]);
         return 1;
     }
-    printf("Extracting %s...\n", argv[1]);
     datdir_extract(argv[1], argv[2], argv[3]);
 }
