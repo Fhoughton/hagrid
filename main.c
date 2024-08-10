@@ -85,33 +85,40 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
     fclose(dat_fp);
 }
 
+int datdir_filter(const struct dirent *name)
+{
+  return 1;
+}
+
 void datdir_repack(const char* dat_folder, const char* out_file_path) {
     /* Reconstruct the .dir index */
     DIR *d;
-    struct dirent *dir;
-    d = opendir(dat_folder);
-    if (d) {
-        // Loop through the files and count them so we know how much memory to allocate in out arrays
-        uint32_t count = 0;
-        while ((dir = readdir(d)) != NULL) {
-            if (dir->d_type == DT_REG)
-            {
-                count++;
-            }
-        }
-        printf("%d files!\n", count);
+    struct dirent **namelist;
 
-        // Read file names
-        while ((dir = readdir(d)) != NULL) {
-            if (dir->d_type == DT_REG)
-            {
-                printf("%s\n", dir->d_name);
-            }
-        }
-
-        // Close the directory when done extracting information
-        closedir(d);
+    uint32_t n = scandir(dat_folder, &namelist, datdir_filter, alphasort);
+    if (n == -1) {
+        perror("scandir");
+        exit(EXIT_FAILURE);
     }
+
+    for (int i = 0; i < n; i++) {
+        // Ensure it's a real file, not symlink or folder
+        if (namelist[i]->d_type == DT_REG) {
+            printf("NAME: %s RECORD LENGTH: %d \n", namelist[i]->d_name, namelist[i]->d_reclen);
+        }
+    }
+
+    // while (n--) {
+    //     switch(namelist[n]->d_type)
+    //     {
+    //     case DT_REG:
+    //         printf("NAME: %s RECORD LENGTH: %d ", namelist[n]->d_name, namelist[n]->d_reclen);
+    //         puts("TYPE: regular");
+    //         break;
+    //     }
+    //     free(namelist[n]);
+    // }
+    // free(namelist);
 
     /* Repack the .dat file using the generated index */
 }
@@ -122,7 +129,12 @@ typedef enum FileMode {
 } FileMode;
 
 void print_usage(char *argv[]) {
-    fprintf(stderr, "Usage: %s [-ep] [dat_file] [dir_file] [output_dir]\n", argv[0]);
+    const char* help_string = "Usage: %s [-ep] <args>\n\n"
+                              "Example commands:\n"
+                              "%s -e potter.dat potter.dir out #Extract .dat/.dir pair\n"
+                              "%s -p out potter.dat potter.dir #Repack extracted .dat/.dir pair files\n"
+                              "";
+    fprintf(stderr, help_string, argv[0], argv[0], argv[0]);
 }
 
 int main(int argc, char *argv[]) {
