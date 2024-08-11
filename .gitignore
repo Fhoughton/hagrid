@@ -2,6 +2,11 @@
 hagrid
 *.exe
 
+# PSX Tools
+dumpsxiso
+mkpsxiso
+potter01_repack.xml
+
 # Game Files
 potter01_extracted
 potter01_repackme
