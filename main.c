@@ -175,17 +175,17 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
     }
 
     // Create a buffer to read files into
-    uint8_t *buffer; // Allocate 256MB of space for files
+    uint8_t buffer[1024] = {0}; // Allocate 256MB of space for files
     uint32_t read_size;
-
-    buffer = malloc(1024 * 1024 * 256 * sizeof(uint8_t));
+    uint32_t padding_size; // Need to pad to nearest 2kb on each file
 
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
         if (namelist[i]->d_type == DT_REG) {
+            file_size = 0;
             printf("PACKING %s into .dat\n", namelist[i]->d_name);
             // Clear the buffer so it's zeroed for reading
-            memset(buffer, 0, 1024 * 1024 * 256 * sizeof(uint8_t));
+            memset(buffer, 0, sizeof buffer);
 
             // Read file and write data with padding to dat file
             snprintf(output_path, sizeof(output_path), "%s/%s", dat_folder, namelist[i]->d_name);
@@ -196,11 +196,17 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
                 return;
             }
             
-            read_size = fread(buffer, sizeof(uint8_t), 1024 * 1024 * 256, file_fp);
-            read_size = roundUp(read_size, 2048); // Have to round to 2kb blocks to pack like game originally does
-            printf("%s was of size %d\n", namelist[i]->d_name, read_size);
+            while ((read_size = fread(buffer, 1, sizeof(buffer), file_fp)) > 0)
+            {
+                fwrite(&buffer, sizeof(uint8_t), read_size, dat_fp);
+                file_size += read_size;
+            }
 
-            fwrite(&buffer, sizeof(uint8_t), read_size, dat_fp);
+            // Write padding to nearest 2kb
+            padding_size = roundUp(file_size, 2048) - file_size;
+            uint8_t* zeros = calloc(padding_size, sizeof(uint8_t));
+            fwrite(zeros, sizeof(uint8_t), padding_size, dat_fp);
+            free(zeros);
 
             fclose(file_fp);
         }
