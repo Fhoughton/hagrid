@@ -138,7 +138,7 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
     fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
 
     uint32_t file_size = 0;
-    uint32_t offset = -; // We calculate the running offset by adding the file sizes together
+    uint32_t offset = 0; // We calculate the running offset by adding the file sizes together
 
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
