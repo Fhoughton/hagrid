@@ -51,7 +51,7 @@ void datdir_extract(const char* dat_file, const char* dir_file, const char* outp
         filename[12] = '\0'; // Manually null-terminate
 
         // Allocate buffer for file data
-        buffer = (char*)malloc(entry.filesize);
+        buffer = (uint8_t*)malloc(entry.filesize);
         if (!buffer) {
             perror("Memory allocation failed");
             fclose(dir_fp);
