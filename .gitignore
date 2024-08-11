@@ -15,3 +15,5 @@ out
 *.dat
 *.wad
 *.iso
+*.bin
+*.cue
