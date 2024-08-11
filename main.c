@@ -161,25 +161,52 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
 
             fclose(file_fp);
         }
-        
     }
 
     fclose(dir_fp);
 
-
-    // while (n--) {
-    //     switch(namelist[n]->d_type)
-    //     {
-    //     case DT_REG:
-    //         printf("NAME: %s RECORD LENGTH: %d ", namelist[n]->d_name, namelist[n]->d_reclen);
-    //         puts("TYPE: regular");
-    //         break;
-    //     }
-    //     free(namelist[n]);
-    // }
-    // free(namelist);
-
     /* Repack the .dat file using the generated index */
+    // Open the new .dat file
+    printf("Dat_file: %s\n", dat_file);
+    dat_fp = fopen(dat_file, "wb");
+    if (!dat_fp) {
+        perror("Error opening .dat file");
+        return;
+    }
+
+    // Create a buffer to read files into
+    uint8_t *buffer; // Allocate 256MB of space for files
+    uint32_t read_size;
+
+    buffer = malloc(1024 * 1024 * 256 * sizeof(uint8_t));
+
+    for (int i = 0; i < n; i++) {
+        // Ensure it's a real file, not symlink or folder
+        if (namelist[i]->d_type == DT_REG) {
+            printf("PACKING %s into .dat\n", namelist[i]->d_name);
+            // Clear the buffer so it's zeroed for reading
+            memset(buffer, 0, 1024 * 1024 * 256 * sizeof(uint8_t));
+
+            // Read file and write data with padding to dat file
+            snprintf(output_path, sizeof(output_path), "%s/%s", dat_folder, namelist[i]->d_name);
+
+            file_fp = fopen(output_path, "rb");
+            if (!file_fp) {
+                perror("Error opening .dat file");
+                return;
+            }
+            
+            read_size = fread(buffer, sizeof(uint8_t), 1024 * 1024 * 256, file_fp);
+            read_size = roundUp(read_size, 2048); // Have to round to 2kb blocks to pack like game originally does
+            printf("%s was of size %d\n", namelist[i]->d_name, read_size);
+
+            fwrite(&buffer, sizeof(uint8_t), read_size, dat_fp);
+
+            fclose(file_fp);
+        }
+    }
+
+    fclose(dat_fp);
 }
 
 typedef enum FileMode {
