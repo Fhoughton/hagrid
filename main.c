@@ -137,8 +137,8 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
     // First write the bytes for the file count
     fwrite(&file_count, sizeof(uint32_t), 1, dir_fp);
 
-    uint32_t file_size;
-    uint32_t offset; // We calculate the running offset by adding the file sizes together
+    uint32_t file_size = 0;
+    uint32_t offset = -; // We calculate the running offset by adding the file sizes together
 
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
@@ -176,8 +176,8 @@ void datdir_repack(const char* dat_folder, const char* dat_file, const char* dir
 
     // Create a buffer to read files into
     uint8_t buffer[1024] = {0}; // Allocate 256MB of space for files
-    uint32_t read_size;
-    uint32_t padding_size; // Need to pad to nearest 2kb on each file
+    uint32_t read_size = 0;
+    uint32_t padding_size = 0; // Need to pad to nearest 2kb on each file
 
     for (int i = 0; i < n; i++) {
         // Ensure it's a real file, not symlink or folder
