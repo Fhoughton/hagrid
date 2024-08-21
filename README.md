@@ -17,4 +17,4 @@ hagrid -p <extracted_dir_path> <out.dat> <out.dir>
 ```
 
 # Extracting the .bin and .cue files and other tips
-For information on extracting the .bin and .cue files from the game to view the file contents, as well as format info, please see my [blog post](www.example.com) on this tool.
+For information on extracting the .bin and .cue files from the game to view the file contents, as well as format info, please see my [blog post](https://fhoughton.github.io/reverse-engineering/ps1/psx/c/2024/08/10/week5-potter.html) on this tool.
