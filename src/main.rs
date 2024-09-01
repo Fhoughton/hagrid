@@ -1,4 +1,4 @@
-use clap::{builder::StringValueParser, Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::str;
 use std::path::Path;
 use std::fs;
@@ -34,9 +34,8 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
 
         println!("Name: {}, Size: {}, Offset: {}", filename_string, filesize, dat_offset);
 
+        // Resolve the output file path and write the data to the file
         let out_file_path = Path::new(&out_path).join(filename_string);
-        println!("Path: '{}'", out_file_path.display());
-
         fs::write(out_file_path, &dat_contents[dat_offset..dat_offset+filesize]).unwrap();
     }
 }
