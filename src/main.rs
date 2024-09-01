@@ -161,6 +161,7 @@ fn main() {
                     datdir_extract(dat_file, dir_file, path);
                 }
 
+                // e.g. hagrid dat-dir --mode pack --dat-file MYPOTTER.dat --dir-file MYPOTTER.dir --path out
                 FileMode::Pack => {
                     datdir_pack(dat_file, dir_file, path);
                 }
