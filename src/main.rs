@@ -40,6 +40,19 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     }
 }
 
+fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
+    let files = fs::read_dir(in_path).unwrap();
+    let files_count = files.count();
+
+    println!("Packing {} files", files_count);
+
+    let mut dir_data: Vec<u8> = vec![];
+
+    dir_data.extend(files_count.to_le_bytes());
+
+    println!("Dir: {:?}", dir_data);
+}
+
 #[derive(Parser)]
 #[command(name = "hagrid", about = "A file extractor for the PS1 Harry Potter games")]
 struct Args {
@@ -79,7 +92,7 @@ fn main() {
                 }
 
                 FileMode::Pack => {
-
+                    datdir_pack(dat_file, dir_file, path);
                 }
             }
         }
