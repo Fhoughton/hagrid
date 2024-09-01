@@ -1,12 +1,7 @@
 use clap::{builder::StringValueParser, Parser, Subcommand, ValueEnum};
-use std::fs::read;
 use std::str;
-
-struct DirFileEntry {
-    name: String,
-    filesize: u32,
-    offset: u32
-}
+use std::path::Path;
+use std::fs;
 
 fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     let dir_contents = std::fs::read(dir_file).unwrap();
@@ -20,15 +15,29 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     // Extract the file from the .dat
     for i in 0..file_count {
         let dir_offset : usize = 4 + (i * 20) as usize; // entry Each is 20 bytes long
+
+        // 12 byte filename
         let filename_bytes = &dir_contents[dir_offset..dir_offset+12];
-        println!("{:?}", filename_bytes);
 
         let filename_string = match str::from_utf8(filename_bytes) {
-            Ok(v) => v,
+            Ok(v) => v.trim_matches(char::from(0)), // Trims the trailing null terminators used to pad to 12 bytes
             Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
         };
 
-        println!("{}", filename_string);
+        // 4 byte filesize (in bytes)
+        let filesize_bytes = &dir_contents[dir_offset+12..dir_offset+16];
+        let filesize = u32::from_le_bytes(filesize_bytes.try_into().unwrap()) as usize;
+
+        // 4 byte file offset
+        let offset_bytes = &dir_contents[dir_offset+16..dir_offset+20];
+        let dat_offset = u32::from_le_bytes(offset_bytes.try_into().unwrap()) as usize;
+
+        println!("Name: {}, Size: {}, Offset: {}", filename_string, filesize, dat_offset);
+
+        let out_file_path = Path::new(&out_path).join(filename_string);
+        println!("Path: '{}'", out_file_path.display());
+
+        fs::write(out_file_path, &dat_contents[dat_offset..dat_offset+filesize]).unwrap();
     }
 }
 
