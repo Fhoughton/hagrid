@@ -1,7 +1,7 @@
-use clap::{Parser, Subcommand};
+use clap::{ValueEnum, Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(name = "hagrid", about = "A file extractor for the PS1 Harry Potter games")]
 struct Args {
     #[command(subcommand)]
     cmd: Commands
@@ -9,16 +9,19 @@ struct Args {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
-    Extract {
-        mode: String
+    DatDir {
+        #[clap(short, long, value_enum)]
+        mode: FileMode,
+        #[clap(long)]
+        dat_file: String,
+        #[clap(long)]
+        dir_file: String,
+        #[clap(long)]
+        path: String
     },
-    Pack {
-        mode: String
-    }
 }
 
-
-#[derive(Debug, Clone)]
+#[derive(ValueEnum, Debug, Clone)]
 enum FileMode {
     Extract,
     Pack,
@@ -28,7 +31,16 @@ fn main() {
     let args = Args::parse();
 
     match args.cmd {
-        Commands::Extract{mode} => println!("Extract!"),
-        Commands::Pack{mode} => println!("Pack!")
+        Commands::DatDir{mode, dat_file, dir_file, path} => {
+            match mode {
+                FileMode::Extract => {
+
+                }
+
+                FileMode::Pack => {
+
+                }
+            }
+        }
     }
 }
