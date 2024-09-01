@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
-use std::str;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
+use std::str;
 
 fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     let dir_contents = std::fs::read(dir_file).unwrap();
@@ -14,10 +14,10 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     // (name, pointer, size) and then use these to
     // Extract the file from the .dat
     for i in 0..file_count {
-        let dir_offset : usize = 4 + (i * 20) as usize; // entry Each is 20 bytes long
+        let dir_offset: usize = 4 + (i * 20) as usize; // entry Each is 20 bytes long
 
         // 12 byte filename
-        let filename_bytes = &dir_contents[dir_offset..dir_offset+12];
+        let filename_bytes = &dir_contents[dir_offset..dir_offset + 12];
 
         let filename_string = match str::from_utf8(filename_bytes) {
             Ok(v) => v.trim_matches(char::from(0)), // Trims the trailing null terminators used to pad to 12 bytes
@@ -25,18 +25,25 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
         };
 
         // 4 byte filesize (in bytes)
-        let filesize_bytes = &dir_contents[dir_offset+12..dir_offset+16];
+        let filesize_bytes = &dir_contents[dir_offset + 12..dir_offset + 16];
         let filesize = u32::from_le_bytes(filesize_bytes.try_into().unwrap()) as usize;
 
         // 4 byte file offset
-        let offset_bytes = &dir_contents[dir_offset+16..dir_offset+20];
+        let offset_bytes = &dir_contents[dir_offset + 16..dir_offset + 20];
         let dat_offset = u32::from_le_bytes(offset_bytes.try_into().unwrap()) as usize;
 
-        println!("Name: {}, Size: {}, Offset: {}", filename_string, filesize, dat_offset);
+        println!(
+            "Name: {}, Size: {}, Offset: {}",
+            filename_string, filesize, dat_offset
+        );
 
         // Resolve the output file path and write the data to the file
         let out_file_path = Path::new(&out_path).join(filename_string);
-        fs::write(out_file_path, &dat_contents[dat_offset..dat_offset+filesize]).unwrap();
+        fs::write(
+            out_file_path,
+            &dat_contents[dat_offset..dat_offset + filesize],
+        )
+        .unwrap();
     }
 }
 
@@ -55,9 +62,10 @@ fn round_up(num_to_round: u32, multiple: u32) -> u32 {
 }
 
 fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
-    let mut files: Vec<_> = fs::read_dir(&in_path).unwrap()
-                                              .map(|r| r.unwrap())
-                                              .collect();
+    let mut files: Vec<_> = fs::read_dir(&in_path)
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
     files.sort_by_key(|dir| dir.path());
 
     let files_count = files.len() as u32;
@@ -69,7 +77,7 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     // Repack dir file
     dir_data.extend(files_count.to_le_bytes()); // Write file count first
 
-    let mut dir_offset : u32 = 0;
+    let mut dir_offset: u32 = 0;
 
     // Then for each file write the name as 12 bytes, size as 4 bytes and offset in the dat file as 4 bytes
     for entry in &files {
@@ -83,10 +91,9 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
             // First write 12 byte filename
             dir_data.extend(file_name.as_bytes());
 
-            for _ in 0..12-file_name.len() {
+            for _ in 0..12 - file_name.len() {
                 dir_data.push(0x00); // Pad with null terminated bytes
             }
-
 
             // Then write 4 byte file size
             dir_data.extend(file_size.to_le_bytes());
@@ -110,7 +117,8 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
 
             dat_data.extend(file_contents.clone());
 
-            let padding_size = round_up(file_contents.len() as u32, 2048) - file_contents.len() as u32;
+            let padding_size =
+                round_up(file_contents.len() as u32, 2048) - file_contents.len() as u32;
 
             for _ in 0..padding_size {
                 dat_data.push(0x00);
@@ -124,10 +132,13 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
 }
 
 #[derive(Parser)]
-#[command(name = "hagrid", about = "A file extractor for the PS1 Harry Potter games")]
+#[command(
+    name = "hagrid",
+    about = "A file extractor for the PS1 Harry Potter games"
+)]
 struct Args {
     #[command(subcommand)]
-    cmd: Commands
+    cmd: Commands,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -140,7 +151,7 @@ enum Commands {
         #[clap(long)]
         dir_file: String,
         #[clap(long)]
-        path: String
+        path: String,
     },
 }
 
@@ -154,7 +165,12 @@ fn main() {
     let args = Args::parse();
 
     match args.cmd {
-        Commands::DatDir{mode, dat_file, dir_file, path} => {
+        Commands::DatDir {
+            mode,
+            dat_file,
+            dir_file,
+            path,
+        } => {
             match mode {
                 // e.g. hagrid dat-dir --mode extract --dat-file potter01_extracted/POTTER.DAT --dir-file potter01_extracted/POTTER.DIR --path out
                 FileMode::Extract => {
