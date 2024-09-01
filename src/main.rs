@@ -10,13 +10,15 @@ struct Args {
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
     Extract {
+        mode: String
     },
     Pack {
+        mode: String
     }
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum FileMode {
     Extract,
     Pack,
@@ -26,7 +28,7 @@ fn main() {
     let args = Args::parse();
 
     match args.cmd {
-        Commands::Extract{} => println!("Extract!"),
-        Commands::Pack{} => println!("Pack!")
+        Commands::Extract{mode} => println!("Extract!"),
+        Commands::Pack{mode} => println!("Pack!")
     }
 }
