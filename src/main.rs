@@ -40,6 +40,20 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
     }
 }
 
+// Datdir entries sizes are rounded up to 2kb blocks so we need a function to handle rounding  up
+fn round_up(num_to_round: u32, multiple: u32) -> u32 {
+    if multiple == 0 {
+        return num_to_round;
+    }
+
+    let remainder = num_to_round % multiple;
+    if remainder == 0 {
+        return num_to_round;
+    }
+
+    num_to_round + multiple - remainder
+}
+
 fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     let mut files: Vec<_> = fs::read_dir(&in_path).unwrap()
                                               .map(|r| r.unwrap())
@@ -81,7 +95,7 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
             dir_data.extend(dir_offset.to_le_bytes());
 
             // Increment the offset
-            dir_offset += file_size; // Move the offsets in the file each time
+            dir_offset += round_up(file_size, 2048); // Move the offsets in the file each time
         }
     }
 
@@ -94,7 +108,13 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
         if path.is_file() {
             let file_contents = std::fs::read(path).unwrap();
 
-            dat_data.extend(file_contents);
+            dat_data.extend(file_contents.clone());
+
+            let padding_size = round_up(file_contents.len() as u32, 2048) - file_contents.len() as u32;
+
+            for _ in 0..padding_size {
+                dat_data.push(0x00);
+            }
         }
     }
 
