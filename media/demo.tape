@@ -8,13 +8,13 @@ Set Width 1200
 Set Height 600
 
 Sleep 2s
-Type "./hagrid" Sleep 500ms  Enter
+Type "./hagrid --help" Sleep 500ms  Enter
 Sleep 2s
-Type "./hagrid -e potter01_extracted/POTTER.DAT potter01_extracted/POTTER.DIR out" Sleep 500ms  Enter
+Type "./hagrid dat-dir --mode extract --dat-file potter01_extracted/POTTER.DAT --dir-file potter01_extracted/POTTER.DIR --path out" Sleep 500ms  Enter
 Sleep 4s
 Type "ls out" Sleep 500ms  Enter
 Sleep 3s
-Type "./hagrid -p out potter.dat potter.dir" Sleep 500ms  Enter
+Type "./hagrid dat-dir --mode pack --dat-file potter.dat --dir-file potter.dir --path out" Sleep 500ms  Enter
 Sleep 2s
 Type "ls -sh potter.dir" Sleep 500ms  Enter
 Sleep 2s
