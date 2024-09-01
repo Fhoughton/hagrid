@@ -42,7 +42,7 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
 
 fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     let files = fs::read_dir(in_path).unwrap();
-    let files_count = files.count();
+    let files_count = files.count() as u32;
 
     println!("Packing {} files", files_count);
 
