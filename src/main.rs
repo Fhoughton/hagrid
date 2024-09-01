@@ -41,7 +41,7 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
 }
 
 fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
-    let files = fs::read_dir(in_path).unwrap();
+    let mut files = fs::read_dir(&in_path).unwrap();
     let files_count = files.count() as u32;
 
     println!("Packing {} files", files_count);
@@ -49,6 +49,35 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     let mut dir_data: Vec<u8> = vec![];
 
     dir_data.extend(files_count.to_le_bytes());
+
+    let mut dir_offset : u32 = 0;
+    files = fs::read_dir(&in_path).unwrap();
+    for entry in files {
+        let path = entry.unwrap().path();
+
+        if path.is_file() {
+            let metadata = fs::metadata(&path).unwrap();
+            let file_size = metadata.len() as u32;
+            let file_name = path.file_name().unwrap().to_string_lossy(); // Have to format to fill it to 12 bytes with null characters
+
+            // First write 12 byte filename
+            dir_data.extend(file_name.as_bytes());
+
+            for _ in 0..12-file_name.len() {
+                dir_data.push(0x00); // Pad with null terminated bytes
+            }
+
+
+            // Then write 4 byte file size
+            dir_data.extend(file_size.to_le_bytes());
+
+            // Then 4 bytes file offset
+            dir_data.extend(dir_offset.to_le_bytes());
+
+            // Increment the offset
+            dir_offset += file_size; // Move the offsets in the file each time
+        }
+    }
 
     println!("Dir: {:?}", dir_data);
 }
