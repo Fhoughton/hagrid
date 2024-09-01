@@ -8,13 +8,13 @@ It handles handles extracting and repacking the .dat/.dir files used by the game
 # Usage
 To extract a .dat/.dir file pair use the -e flag:
 ```bash
-hagrid -e <file.dat> <file.dir> <output_path>
+hagrid dat-dir --mode extract --dat-file <file.dat> --dir-file <file.dir> --path <output_path>
 ```
 
 To repack an extracted .dat/.dir pair use the -p flag:
 ```bash
-hagrid -p <extracted_dir_path> <out.dat> <out.dir>
+hagrid dat-dir --mode pack --dat-file <out.dat> --dir-file <out.dir> --path <extracted_dir_path>
 ```
 
 # Extracting the .bin and .cue files and other tips
-For information on extracting the .bin and .cue files from the game to view the file contents, as well as format info, please see my [blog post](https://fhoughton.github.io/reverse-engineering/ps1/psx/c/2024/08/10/week5-potter.html) on this tool.
+For information on extracting the .bin and .cue files from the game to view the file contents, as well as format info, please see my original [blog post](https://fhoughton.github.io/reverse-engineering/ps1/psx/c/2024/08/10/week5-potter.html) on the C version this tool.
