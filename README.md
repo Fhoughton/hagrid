@@ -6,12 +6,12 @@ Hagrid is a tool to manage the extraction of the game files for [Harry Potter an
 It handles handles extracting and repacking the .dat/.dir files used by the game, where .dat contains unencrypted files and .dir lists the .dat file contents.
 
 # Usage
-To extract a .dat/.dir file pair use the -e flag:
+To extract a .dat/.dir file pair:
 ```bash
 hagrid dat-dir --mode extract --dat-file <file.dat> --dir-file <file.dir> --path <output_path>
 ```
 
-To repack an extracted .dat/.dir pair use the -p flag:
+To repack an extracted .dat/.dir pair:
 ```bash
 hagrid dat-dir --mode pack --dat-file <out.dat> --dir-file <out.dir> --path <extracted_dir_path>
 ```
