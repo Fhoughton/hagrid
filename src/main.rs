@@ -41,8 +41,12 @@ fn datdir_extract(dat_file: String, dir_file: String, out_path: String) {
 }
 
 fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
-    let mut files = fs::read_dir(&in_path).unwrap();
-    let files_count = files.count() as u32;
+    let mut files: Vec<_> = fs::read_dir(&in_path).unwrap()
+                                              .map(|r| r.unwrap())
+                                              .collect();
+    files.sort_by_key(|dir| dir.path());
+
+    let files_count = files.len() as u32;
 
     println!("Packing {} files", files_count);
 
@@ -54,9 +58,8 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     let mut dir_offset : u32 = 0;
 
     // Then for each file write the name as 12 bytes, size as 4 bytes and offset in the dat file as 4 bytes
-    files = fs::read_dir(&in_path).unwrap();
-    for entry in files {
-        let path = entry.unwrap().path();
+    for entry in &files {
+        let path = entry.path();
 
         if path.is_file() {
             let metadata = fs::metadata(&path).unwrap();
@@ -85,9 +88,8 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
     // Then write the dat data
     let mut dat_data: Vec<u8> = vec![];
 
-    files = fs::read_dir(&in_path).unwrap();
-    for entry in files {
-        let path = entry.unwrap().path();
+    for entry in &files {
+        let path = entry.path();
 
         if path.is_file() {
             let file_contents = std::fs::read(path).unwrap();
