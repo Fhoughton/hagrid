@@ -48,9 +48,12 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
 
     let mut dir_data: Vec<u8> = vec![];
 
-    dir_data.extend(files_count.to_le_bytes());
+    // Repack dir file
+    dir_data.extend(files_count.to_le_bytes()); // Write file count first
 
     let mut dir_offset : u32 = 0;
+
+    // Then for each file write the name as 12 bytes, size as 4 bytes and offset in the dat file as 4 bytes
     files = fs::read_dir(&in_path).unwrap();
     for entry in files {
         let path = entry.unwrap().path();
@@ -79,7 +82,23 @@ fn datdir_pack(dat_file: String, dir_file: String, in_path: String) {
         }
     }
 
-    println!("Dir: {:?}", dir_data);
+    // Then write the dat data
+    let mut dat_data: Vec<u8> = vec![];
+
+    files = fs::read_dir(&in_path).unwrap();
+    for entry in files {
+        let path = entry.unwrap().path();
+
+        if path.is_file() {
+            let file_contents = std::fs::read(path).unwrap();
+
+            dat_data.extend(file_contents);
+        }
+    }
+
+    // Now write the files to their destinations
+    fs::write(dat_file, &dat_data).unwrap();
+    fs::write(dir_file, &dir_data).unwrap();
 }
 
 #[derive(Parser)]
